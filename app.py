@@ -11,7 +11,7 @@ if adgangskode == "1531":
     if api_key:
         genai.configure(api_key=api_key)
         # Bruger Flash-modellen, som er stabil, hurtig og billigst
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-pro')
 
         st.title("Engelsk B Eksamensforberedelse")
         
