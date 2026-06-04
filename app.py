@@ -10,12 +10,11 @@ if adgangskode == "1531":
 
     if api_key:
         genai.configure(api_key=api_key)
-        # Her bruger vi nu den korrekte model fra din liste
         model = genai.GenerativeModel('gemini-2.5-flash')
 
         st.title("Engelsk B Eksamensforberedelse")
         
-        tab1, tab2, tab3 = st.tabs(["Grammatik og Ordforråd", "Afsnitstræning", "Essay Censor"])
+        tab1, tab2, tab3, tab4 = st.tabs(["Grammatik og Ordforråd", "Afsnitstræning", "Essay Censor", "Flashcards"])
 
         with tab1:
             st.write("Generer en tilfældig grammatik- eller bindeordsopgave på Engelsk B-niveau.")
@@ -33,12 +32,22 @@ if adgangskode == "1531":
                     st.write(tjek_response.text)
 
         with tab2:
-            st.write("Indsæt et afsnit for at få tjekket sprog og brug af analytiske begreber.")
+            st.write("Få en skriveøvelse eller indsæt et afsnit for at få tjekket sprog, struktur og begreber.")
+            
+            if st.button("Få en skriveøvelse (Inspiration)"):
+                prompt = "Du er engelsklærer. Giv eleven en kort og specifik skriveøvelse til at træne et analytisk afsnit på Engelsk B. Opfind et fiktivt emne, fx 'skriv et afsnit der analyserer fortælleren i en novelle', og foreslå 3 specifikke engelske analytiske begreber eller bindeord, der bør indgå. Skriv det kort og præcist på dansk."
+                response = model.generate_content(prompt)
+                st.session_state['skriveoevelse'] = response.text
+                
+            if 'skriveoevelse' in st.session_state:
+                st.write("Din opgave:")
+                st.write(st.session_state['skriveoevelse'])
+
             afsnit = st.text_area("Dit afsnit:", height=150)
             fokusord = st.text_input("Hvilke analytiske begreber eller bindeord har du forsøgt at bruge?")
             
             if st.button("Analyser afsnit"):
-                prompt = f"Du er sprogkonsulent. Evaluér følgende afsnit skrevet af en dansk gymnasieelev på Engelsk B-niveau. Eleven har forsøgt at inddrage disse ord: {fokusord}. Afsnit: {afsnit}. Vurder om ordene er brugt i korrekt kontekst. Giv feedback på syntaks og kom med 3 konkrete forslag til at gøre sproget mere akademisk."
+                prompt = f"Du er sprogkonsulent. Evaluér følgende afsnit skrevet af en dansk gymnasieelev på Engelsk B-niveau. Eleven har forsøgt at inddrage disse ord: {fokusord}. Afsnit: {afsnit}. Vurder om ordene er brugt i korrekt kontekst. Giv feedback på syntaks, vurdér afsnittets logiske struktur (fx ift. PEEL-strukturen), og kom med 3 konkrete forslag til at gøre sproget mere akademisk."
                 response = model.generate_content(prompt)
                 st.write(response.text)
 
@@ -50,6 +59,29 @@ if adgangskode == "1531":
                 prompt = f"Du er ekstern censor til skriftlig eksamen i Engelsk B på STX i Danmark. Analysér følgende essay ud fra de officielle ministerielle krav: sproglig korrekthed, sammenhæng, tekstanalyse og struktur. Giv konstruktiv kritik på dansk opdelt i: 1) Styrker, 2) Sproglige fokuspunkter (genkommende fejl), og 3) En vurdering af det faglige niveau. Essay: {essay}"
                 response = model.generate_content(prompt)
                 st.write(response.text)
+
+        with tab4:
+            st.write("Træn analytiske begreber, bindeord og akademiske udsagnsord fra ordlisten.")
+            
+            if st.button("Træk et nyt ord"):
+                prompt = 'Giv mig ét tilfældigt dansk ord eller kort begreb relevant for skriftlig Engelsk B (fx et bindeord, litterært begreb eller akademisk udsagnsord) og dets engelske oversættelse. Formatér svaret præcis sådan her uden andet tekst: "dansk ord = engelsk ord".'
+                response = model.generate_content(prompt)
+                
+                try:
+                    dansk, engelsk = response.text.split("=")
+                    st.session_state['flashcard_dk'] = dansk.strip()
+                    st.session_state['flashcard_eng'] = engelsk.strip().lower()
+                except:
+                    st.write("Der opstod en fejl ved generering af ordet. Tryk igen.")
+                    
+            if 'flashcard_dk' in st.session_state:
+                st.write(f"Hvad hedder dette på engelsk: {st.session_state['flashcard_dk']}")
+                oversaettelse = st.text_input("Din oversættelse:", key="flashcard_input")
+                
+                if st.button("Tjek oversættelse"):
+                    tjek_prompt = f"Eleven oversatte det danske ord '{st.session_state['flashcard_dk']}' til engelsk som '{oversaettelse}'. Det mest oplagte svar er '{st.session_state['flashcard_eng']}'. Vurder om elevens svar er korrekt eller et acceptabelt synonym i en akademisk Engelsk B kontekst. Svar kort og præcist på dansk."
+                    tjek_response = model.generate_content(tjek_prompt)
+                    st.write(tjek_response.text)
 
     else:
         st.write("API-nøgle mangler i Streamlit secrets.")
