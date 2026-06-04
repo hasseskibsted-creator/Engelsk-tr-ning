@@ -57,17 +57,20 @@ if adgangskode == "1531":
             with col1:
                 st.write("Skriveområde og Censor")
                 if st.button("Generer et nyt essay-oplæg"):
-                    prompt = "Lav et kort, realistisk essay-oplæg til Engelsk B (STX). Angiv et overordnet emne (fx non-fiction, fiction, literature) og 3 specifikke analytiske punkter, eleven skal inddrage. Skriv oplægget på engelsk, præcis som i en eksamensopgave."
+                    prompt = "Lav et komplet essay-oplæg til Engelsk B (STX). Du skal FØRST generere en kort, fiktiv kildetekst på engelsk (ca. 300 ord), for eksempel et uddrag af en artikel, en novelle eller en tale. BAGEFTER skal du skrive selve opgaveformuleringen nedenunder. Formuleringen skal bede eleven skrive et kort analytisk essay på præcis 400-500 ord, som analyserer den kildetekst, du lige har skrevet. Angiv 3 specifikke analytiske punkter, der skal inddrages. Skriv alt på engelsk."
                     response = model.generate_content(prompt)
                     st.session_state['essay_oplaeg'] = response.text
                     
                 if 'essay_oplaeg' in st.session_state:
-                    st.write(st.session_state['essay_oplaeg'])
+                    with st.expander("Kildetekst og opgaveformulering (Klik for at åbne/lukke)"):
+                        st.write(st.session_state['essay_oplaeg'])
 
-                essay = st.text_area("Dit essay:", height=500)
+                essay = st.text_area("Dit essay (klik uden for feltet for at opdatere ordtælleren):", height=400)
+                ordantal = len(essay.split())
+                st.write(f"Ordtæller: {ordantal} / 400-500 ord")
                 
                 if st.button("Bedøm essay"):
-                    prompt = f"Du er ekstern censor til skriftlig eksamen i Engelsk B på STX i Danmark. Analysér følgende essay ud fra de officielle ministerielle krav: sproglig korrekthed, sammenhæng, tekstanalyse og struktur. Giv konstruktiv kritik på dansk opdelt i: 1) Styrker, 2) Sproglige fokuspunkter (genkommende fejl), og 3) En vurdering af det faglige niveau. Essay: {essay}"
+                    prompt = f"Du er ekstern censor til skriftlig eksamen i Engelsk B på STX i Danmark. Analysér følgende essay ud fra de officielle ministerielle krav, og hav særligt fokus på om længdekravet på 400-500 ord er overholdt. Giv konstruktiv kritik på dansk opdelt i: 1) Styrker, 2) Sproglige fokuspunkter (genkommende fejl), og 3) En vurdering af det faglige niveau. Essay: {essay}"
                     response = model.generate_content(prompt)
                     st.write(response.text)
                     
@@ -84,7 +87,7 @@ if adgangskode == "1531":
                 
                 if st.button("Få 5 gode vendinger til dit emne"):
                     if 'essay_oplaeg' in st.session_state:
-                        prompt = f"Eleven skal skrive et essay om følgende emne: {st.session_state['essay_oplaeg']}. Giv 5 akademiske engelske bindeord eller analytiske vendinger, der vil passe perfekt til at løse netop denne opgave. Giv en ultrakort dansk forklaring til hver."
+                        prompt = f"Eleven skal skrive et essay på 400-500 ord om følgende emne: {st.session_state['essay_oplaeg']}. Giv 5 akademiske engelske bindeord eller analytiske vendinger, der vil passe perfekt til at løse netop denne opgave. Giv en ultrakort dansk forklaring til hver."
                         response = model.generate_content(prompt)
                         st.write(response.text)
                     else:
