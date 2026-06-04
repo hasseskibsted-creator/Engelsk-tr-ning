@@ -14,7 +14,7 @@ if adgangskode == "1531":
 
         st.title("Engelsk B Eksamensforberedelse")
         
-        tab1, tab2, tab3, tab4 = st.tabs(["Grammatik og Ordforråd", "Afsnitstræning", "Essay Censor", "Flashcards"])
+        tab1, tab2, tab3, tab4 = st.tabs(["Grammatik og Ordforråd", "Afsnitstræning", "Essay Værksted", "Flashcards"])
 
         with tab1:
             st.write("Generer en tilfældig grammatik- eller bindeordsopgave på Engelsk B-niveau.")
@@ -52,13 +52,43 @@ if adgangskode == "1531":
                 st.write(response.text)
 
         with tab3:
-            st.write("Få en fuld vurdering af dit essay (Opgave 5).")
-            essay = st.text_area("Dit essay:", height=300)
+            col1, col2 = st.columns([2, 1])
             
-            if st.button("Bedøm essay"):
-                prompt = f"Du er ekstern censor til skriftlig eksamen i Engelsk B på STX i Danmark. Analysér følgende essay ud fra de officielle ministerielle krav: sproglig korrekthed, sammenhæng, tekstanalyse og struktur. Giv konstruktiv kritik på dansk opdelt i: 1) Styrker, 2) Sproglige fokuspunkter (genkommende fejl), og 3) En vurdering af det faglige niveau. Essay: {essay}"
-                response = model.generate_content(prompt)
-                st.write(response.text)
+            with col1:
+                st.write("Skriveområde og Censor")
+                if st.button("Generer et nyt essay-oplæg"):
+                    prompt = "Lav et kort, realistisk essay-oplæg til Engelsk B (STX). Angiv et overordnet emne (fx non-fiction, fiction, literature) og 3 specifikke analytiske punkter, eleven skal inddrage. Skriv oplægget på engelsk, præcis som i en eksamensopgave."
+                    response = model.generate_content(prompt)
+                    st.session_state['essay_oplaeg'] = response.text
+                    
+                if 'essay_oplaeg' in st.session_state:
+                    st.write(st.session_state['essay_oplaeg'])
+
+                essay = st.text_area("Dit essay:", height=500)
+                
+                if st.button("Bedøm essay"):
+                    prompt = f"Du er ekstern censor til skriftlig eksamen i Engelsk B på STX i Danmark. Analysér følgende essay ud fra de officielle ministerielle krav: sproglig korrekthed, sammenhæng, tekstanalyse og struktur. Giv konstruktiv kritik på dansk opdelt i: 1) Styrker, 2) Sproglige fokuspunkter (genkommende fejl), og 3) En vurdering af det faglige niveau. Essay: {essay}"
+                    response = model.generate_content(prompt)
+                    st.write(response.text)
+                    
+            with col2:
+                st.write("Ordbog og Inspiration")
+                opslaagsord = st.text_input("Oversæt et dansk ord til akademisk engelsk:")
+                if st.button("Slå op"):
+                    prompt = f"Oversæt det danske ord '{opslaagsord}' til engelsk. Giv det mest præcise ord, samt 2 gode synonymer der hæver niveauet i et Engelsk B essay. Svar kort på dansk uden overskrifter."
+                    response = model.generate_content(prompt)
+                    st.write(response.text)
+                    
+                st.write("")
+                st.write("")
+                
+                if st.button("Få 5 gode vendinger til dit emne"):
+                    if 'essay_oplaeg' in st.session_state:
+                        prompt = f"Eleven skal skrive et essay om følgende emne: {st.session_state['essay_oplaeg']}. Giv 5 akademiske engelske bindeord eller analytiske vendinger, der vil passe perfekt til at løse netop denne opgave. Giv en ultrakort dansk forklaring til hver."
+                        response = model.generate_content(prompt)
+                        st.write(response.text)
+                    else:
+                        st.write("Du skal generere et essay-oplæg først.")
 
         with tab4:
             st.write("Træn analytiske begreber, bindeord og akademiske udsagnsord fra ordlisten.")
